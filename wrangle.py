@@ -69,3 +69,48 @@ def wrangle_zillow():
 
     return df.reset_index(drop=True)
 
+
+from sklearn.model_selection import train_test_split
+
+def split_zillow(df):
+    
+    train_and_validate, test = train_test_split(df, random_state=123)
+    train, validate = train_test_split(train_and_validate, random_state=123)
+    
+    return train, validate, test
+
+from sklearn.preprocessing import MinMaxScaler
+import sklearn.preprocessing
+import numpy as np
+import pandas as pd
+
+def scale_zillow(df):
+    train, validate, test = split_zillow(df)
+    
+    scaler = sklearn.preprocessing.MinMaxScaler()
+    cols_to_scale = ['calculatedfinishedsquarefeet', 'taxvaluedollarcnt']
+    scaler.fit(train[cols_to_scale])
+
+    train_scaled = scaler.transform(train[cols_to_scale])
+    validate_scaled = scaler.transform(validate[cols_to_scale])
+    test_scaled = scaler.transform(test[cols_to_scale])
+    
+    train_scaled = pd.DataFrame(train_scaled)
+    train_scaled = train_scaled.rename(columns = {0 :'squarefeet_scaled',1 :'taxvalue_scaled'})
+    train_scaled = train_scaled.set_index([train.index.values])
+    train['squarefeet_scaled'] = train_scaled['squarefeet_scaled']
+    train['taxvalue_scaled'] = train_scaled['taxvalue_scaled']
+    
+    validate_scaled = pd.DataFrame(validate_scaled)
+    validate_scaled = validate_scaled.rename(columns = {0 :'squarefeet_scaled',1 :'taxvalue_scaled'})
+    validate_scaled = validate_scaled.set_index([validate.index.values])
+    validate['squarefeet_scaled'] = validate_scaled['squarefeet_scaled']
+    validate['taxvalue_scaled'] = validate_scaled['taxvalue_scaled']
+    
+    test_scaled = pd.DataFrame(test_scaled)
+    test_scaled = test_scaled.rename(columns = {0 :'squarefeet_scaled',1 :'taxvalue_scaled'})
+    test_scaled = test_scaled.set_index([test.index.values])
+    test['squarefeet_scaled'] = test_scaled['squarefeet_scaled']
+    test['taxvalue_scaled'] = test_scaled['taxvalue_scaled']
+    
+    return train, validate, test
